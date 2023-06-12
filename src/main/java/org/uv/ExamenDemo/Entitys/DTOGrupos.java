@@ -14,42 +14,64 @@ import javax.persistence.*;
 @Entity()
 @Table(name = "grupos")
 public class DTOGrupos {
+
     @Id
-    @Column(name = "id_grupo")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long clave;
 
-    @Column(name = "nombre_grupo")
-    private String nombreGrupo;
+    private String nombre;
 
-    public DTOGrupos(String nombreGrupo) {
-        this.nombreGrupo = nombreGrupo;
+    @ManyToOne
+    @JoinColumn(name = "clave_materia")
+    private DTOMaterias materias;
+
+    @ManyToOne
+    @JoinColumn(name = "clave_alumno")
+    private DTOAlumno alumno;
+
+    public DTOGrupos(String nombre, DTOMaterias materias, DTOAlumno alumno) {
+        this.nombre = nombre;
+        this.materias = materias;
+        this.alumno = alumno;
     }
+
+
+    public DTOGrupos() {
+    }
+
+    public Long getClave() {
+        return clave;
+    }
+
+    public void setClave(Long clave) {
+        this.clave = clave;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public DTOMaterias getMaterias() {
+        return materias;
+    }
+
+    public void setMaterias(DTOMaterias materias) {
+        this.materias = materias;
+    }
+
+    public DTOAlumno getAlumno() {
+        return alumno;
+    }
+
+    public void setAlumno(DTOAlumno alumno) {
+        this.alumno = alumno;
+    }
+
     
-    public DTOGrupos(){
-    }
 
-    @PrePersist()
-    public void generatedClave() {
-        String n = getNombreGrupo().substring(0, Math.min(getNombreGrupo().length(), 3)).toUpperCase();
-        String randomNumbers = String.format("%03d", random.nextInt(100));
-        this.setId(n + randomNumbers);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getNombreGrupo() {
-        return nombreGrupo;
-    }
-
-    public void setNombreGrupo(String nombreGrupo) {
-        this.nombreGrupo = nombreGrupo;
-    }
-    
     private static final Random random = new Random();
 }

@@ -5,6 +5,7 @@
 package org.uv.ExamenDemo.Entitys;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import javax.persistence.*;
 import org.hibernate.annotations.GeneratorType;
@@ -18,7 +19,6 @@ import org.hibernate.annotations.GeneratorType;
 public class DTOAlumno {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "clave")
     private String clave;
     @Column(name = "nombre")
@@ -27,31 +27,14 @@ public class DTOAlumno {
     private String direccion;
     @Column(name = "telefono")
     private String telefono;
-    @ManyToOne
-    @JoinColumn(name = "clave_grupo")
-    private DTOGrupos grupo;
-
-    @ManyToMany
-    @JoinTable(name = "alumnos_grupo_materias",
-            joinColumns = @JoinColumn(name = "clave_alumno"),
-            inverseJoinColumns = @JoinColumn(name = "clave_materia"))
-    private List<DTOMaterias> materias;
-
-    @Transient
-    private String nombreGrupo;
-
-    @Transient
-    private String idMateria;
 
     public DTOAlumno() {
     }
 
-    public DTOAlumno(String nombre, String direccion, String telefono, DTOGrupos grupo, List<DTOMaterias> materias) {
+    public DTOAlumno(String nombre, String direccion, String telefono) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.telefono = telefono;
-        this.grupo = grupo;
-        this.materias = materias;
     }
 
     @PrePersist()
@@ -61,24 +44,6 @@ public class DTOAlumno {
         String randomNumbers = String.format("%03d", random.nextInt(100));
         this.setClave(firstName + randomNumbers);
     }
-
-    public DTOGrupos getGrupo() {
-        return grupo;
-    }
-
-    public void setGrupo(DTOGrupos grupo) {
-        this.grupo = grupo;
-    }
-
-    public List<DTOMaterias> getMaterias() {
-        return materias;
-    }
-
-    public void setMaterias(List<DTOMaterias> materias) {
-        this.materias = materias;
-    }
-    
-    
 
     public String getClave() {
         return clave;

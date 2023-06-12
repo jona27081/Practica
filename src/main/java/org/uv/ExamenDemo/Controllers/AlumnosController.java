@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.uv.ExamenDemo.Entitys.DTOAlumno;
+import org.uv.ExamenDemo.Entitys.DTOGrupos;
 import org.uv.ExamenDemo.Entitys.DTOMaterias;
 import org.uv.ExamenDemo.Repositorys.AlumnosRepository;
+import org.uv.ExamenDemo.Repositorys.GruposRepository;
 import org.uv.ExamenDemo.Repositorys.MateriasRepository;
 
 /**
@@ -35,18 +37,8 @@ public class AlumnosController {
     AlumnosRepository aRepository;
     @Autowired
     MateriasRepository mRepository;
-
-    public List<DTOMaterias> checkIdsExistMateria(List<DTOMaterias> mats) {
-        List<DTOMaterias> ltsMaterias = new ArrayList<>();
-        for (DTOMaterias mat : mats) {
-            Optional<DTOMaterias> mOptional = mRepository.findById(mat.getClave());
-            if (mOptional.isEmpty()) {
-                throw new IllegalArgumentException("No se encontró la materia para el id: " + mat.getClave());
-            }
-            ltsMaterias.add(mOptional.get());
-        }
-        return ltsMaterias;
-    }
+    @Autowired
+    GruposRepository gRepository;
 
     @GetMapping("/")
     public ResponseEntity<List<DTOAlumno>> getAllAlumnos() {
@@ -71,27 +63,19 @@ public class AlumnosController {
 
     @PostMapping("/")
     public ResponseEntity<DTOAlumno> createAlumno(@RequestBody DTOAlumno alm) {
-        List<DTOMaterias> ltsMaterias = checkIdsExistMateria(alm.getMaterias());
-
-        if (ltsMaterias != null) {
             try {
                 DTOAlumno _alm = aRepository.save(new DTOAlumno(
                         alm.getNombre(),
                         alm.getDireccion(),
-                        alm.getTelefono(),
-                        alm.getGrupo(),
-                        ltsMaterias
+                        alm.getTelefono()
                 ));
                 return new ResponseEntity<>(_alm, HttpStatus.CREATED);
             } catch (Exception e) {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        }
-        return new ResponseEntity<>(null, HttpStatus.PRECONDITION_FAILED);
-
     }
 
-    @DeleteMapping("/{id}")
+    /*@DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteAlumno(@PathVariable("id") long id) {
         try {
             aRepository.deleteById(id);
@@ -114,6 +98,6 @@ public class AlumnosController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-    }
+    }*/
 
 }

@@ -7,6 +7,8 @@ package org.uv.ExamenDemo.Controllers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.uv.ExamenDemo.Entitys.CreacionGrupos;
+import org.uv.ExamenDemo.Entitys.DTOAlumno;
 import org.uv.ExamenDemo.Entitys.DTOGrupos;
+import org.uv.ExamenDemo.Entitys.DTOMaterias;
+import org.uv.ExamenDemo.Repositorys.AlumnosRepository;
 import org.uv.ExamenDemo.Repositorys.GruposRepository;
+import org.uv.ExamenDemo.Repositorys.MateriasRepository;
 
 /**
  *
@@ -31,6 +38,26 @@ public class GruposController {
 
     @Autowired
     GruposRepository gRepository;
+    @Autowired
+    AlumnosRepository aRepository;
+    @Autowired
+    MateriasRepository mRepository;
+
+    public ResponseEntity<List<DTOMaterias>> checkIdsExistMateria(List<String> mats) {
+        List<DTOMaterias> ltsMaterias = new ArrayList<>();
+        try {
+            for (String mat : mats) {
+                Optional<DTOMaterias> mOptional = mRepository.findById(mat);
+                if (mOptional.isEmpty()) {
+                    return ResponseEntity.notFound().build();
+                }
+                ltsMaterias.add(mOptional.get());
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(ltsMaterias);
+    }
 
     @GetMapping("/")
     public ResponseEntity<List<DTOGrupos>> getAllGrupos() {
@@ -53,19 +80,46 @@ public class GruposController {
         }
     }
 
-    @PostMapping("/")
-    public ResponseEntity<DTOGrupos> createGrupo(@RequestBody DTOGrupos gps) {
+    public ResponseEntity<List<DTOAlumno>> checkIdsExistAlumno(List<String> alumnos) {
+        List<DTOAlumno> ltsAlumnos = new ArrayList<>();
         try {
-            DTOGrupos _gps = gRepository.save(new DTOGrupos(
-                    gps.getNombreGrupo()
-            ));
-            return new ResponseEntity<>(_gps, HttpStatus.CREATED);
+            for (String alm : alumnos) {
+                Optional<DTOAlumno> mOptional = aRepository.findById(alm);
+                if (mOptional.isEmpty()) {
+                    return ResponseEntity.notFound().build();
+                }
+                ltsAlumnos.add(mOptional.get());
+            }
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+        return ResponseEntity.ok(ltsAlumnos);
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/")
+    public ResponseEntity<DTOGrupos> createGrupo(@RequestBody CreacionGrupos dataGrupo) {
+        List<DTOAlumno> ltsAlumnos = checkIdsExistAlumno(dataGrupo.getAlumnos()).getBody();
+        List<DTOMaterias> ltsMaterias = checkIdsExistMateria(dataGrupo.getMaterias()).getBody();
+        if (ltsAlumnos != null && ltsMaterias != null && !ltsAlumnos.isEmpty() && !ltsMaterias.isEmpty()) {
+            try {
+                for (DTOAlumno alm : ltsAlumnos) {
+                    for (DTOMaterias mat : ltsMaterias) {
+                        gRepository.save(new DTOGrupos(
+                                dataGrupo.getNombre(),
+                                mat,
+                                alm
+                        ));
+                    }
+                }
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            } catch (Exception e) {
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<>(null, HttpStatus.PRECONDITION_FAILED);
+    }
+
+        /*@DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteGrupo(@PathVariable("id") String id) {
         try {
             gRepository.deleteById(id);
@@ -85,6 +139,5 @@ public class GruposController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }*/
     }
-
-}
